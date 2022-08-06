@@ -3,6 +3,6 @@
 
 ## Sobre
 
-Multi autenticação Jetstream User e Admin. Trata-se de um pacote incial de aplicações. Agora cria algo incrível. :)
+Multi autenticação Jetstream User e Admin. Trata-se de um pacote incial de aplicações. Agora crie algo incrível. :)
 
 
