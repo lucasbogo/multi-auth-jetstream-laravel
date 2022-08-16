@@ -16,12 +16,12 @@ A lógica por trás deste pacote é encontrado em:
 
 ## Views:
 
-As views referente a login e register podem ser encontradas, n newmodern-store em:
+As views referente a login e register podem ser encontradas, na newmodern-store em:
 - resources/views/auth
 
 ## Lógica login:
 
-O Login e register está visivel pela a seguinte rota no web.php da newmodern-store. ressalto que esta rota vem por *default* no jetstream. Basta utilizar,
+O Login e register está visivel pela a seguinte rota no web.php da newmodern-store. ressalto que esta rota vem por *default* no jetstream. Basta utilizar...
 
 ```
 // login, registration, email verification, two-factor authentication, session management 
