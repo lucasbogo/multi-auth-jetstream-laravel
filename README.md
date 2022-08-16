@@ -11,8 +11,8 @@ Este pacote, após devidamente configurado, providencia toda a lógica por trás
 
 A lógica por trás deste pacote é encontrado em: 
 
--config -> fortify.php
--config -> jetstream.php
+- config -> fortify.php
+- config -> jetstream.php
 
 ## Views:
 
