@@ -16,7 +16,7 @@ A lógica por trás deste pacote é encontrado em:
 
 ## Views:
 
-As views referente a login e register podem ser encontradas, na newmodern-store em:
+As views referente a login e register podem ser encontradas, na newmodern-store, em:
 - resources/views/auth
 
 ## Lógica login:
