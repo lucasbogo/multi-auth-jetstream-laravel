@@ -297,7 +297,9 @@ class Admin extends Authenticatable
     ];
 }
 ```
-## Migrar: ``` php artisan migrate ```
+## Migrar: 
+
+#### Rodar comando:  ``` php artisan migrate ```
 
 
 
