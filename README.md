@@ -402,8 +402,8 @@ Os *guardas* definem como os usuários são autenticados para cada solicitação
 
 ## Configuração Guard Admin
 
-#### Entrar na em: ``` config -> auth.php```
-#### Criar um guard admin copiando. Basta copiar o guard *web* e alterar *web* para **admin** no segundo campo do auth.php
+#### Entrar em: ``` config -> auth.php```
+#### Criar um guard admin copiando a lógica user. Basta copiar o guard *web* e alterar *web* para **admin** no segundo campo do auth.php
 ```
   'guards' => [
         'web' => [
@@ -417,7 +417,7 @@ Os *guardas* definem como os usuários são autenticados para cada solicitação
     ],
 
 ```
-#### Mesmo processo, mas agora, para o terceito campo do auth.php
+#### Mesmo processo, mas agora, para o terceiro campo do auth.php
 ```
  'providers' => [
         'users' => [
@@ -455,7 +455,7 @@ Os *guardas* definem como os usuários são autenticados para cada solicitação
     ],
 
 ```
-#### Para ter um entendimento melhor sobre a MultiAutenticação Jetstream, basta rodar o comando ```php artisan r:l``` . Isso mostrá uma lista de todas as rotas e métodos que vem por default. Muitas delas serão utilizados neste trabalho.
+#### Para ter um entendimento melhor sobre a MultiAutenticação Jetstream, basta rodar o comando ```php artisan r:l``` . Isso mostrará uma lista de todas as rotas e métodos que vem por default. Muitas delas serão utilizados neste trabalho.
 
 ## Proxima etapa:
 ### Configurar FortifyServiceProvider.php localizado na pasta **Providers**
