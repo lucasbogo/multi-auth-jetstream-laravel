@@ -318,7 +318,7 @@ class Admin extends Authenticatable
     }
 ```
 
-#### Colar em AdminFactory
+#### Colar em AdminFactory e alterar nome e email conforme sua necessidade
 ```
 <?php
 
