@@ -756,6 +756,393 @@ class RedirectIfTwoFactorAuthenticatable
     }
 }
 ```
+#### Colar em app/Actions/Fortify: Basta copiar os arquivos inteiros e colar na pasta ```app/Actions/Fortify```
+
+#### Inserir o seguinte código em *FortifyServiceProvider.php* localizado em: ```/app/Providers/FortifyServiceProvider.php``` 
+```
+public function register()
+    {
+        /** 
+         * Acessar pasta app com adminController e as classes Default Laravel Multiautenticação
+         * Com a interface Stateful Guard mais função give (default do pacote Jetstream)
+         * Retorna o 'guard' autenticado admin. Eu utilizei Documentação. Não sei explicar isso.
+         * 
+         */ 
+        $this->app->when([
+            AdminController::class, AttemptToAuthenticate::class,
+            RedirectIfTwoFactorAuthenticatable::class])->needs(StatefulGuard::class)->give(function (){
+                return Auth::guard('admin');
+            });
+    }
+
+```
+
+#### Copiar lógica de *AuthenticatedSessionController* localizado em ```vendor\laravel\fortify\src\Http\Controllers\AuthenticatedSessionController.php```
+
+```
+<?php
+
+namespace Laravel\Fortify\Http\Controllers;
+
+use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Routing\Pipeline;
+use Laravel\Fortify\Actions\AttemptToAuthenticate;
+use Laravel\Fortify\Actions\EnsureLoginIsNotThrottled;
+use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
+use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LoginViewResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
+use Laravel\Fortify\Features;
+use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Http\Requests\LoginRequest;
+
+class AuthenticatedSessionController extends Controller
+{
+    /**
+     * The guard implementation.
+     *
+     * @var \Illuminate\Contracts\Auth\StatefulGuard
+     */
+    protected $guard;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \Illuminate\Contracts\Auth\StatefulGuard  $guard
+     * @return void
+     */
+    public function __construct(StatefulGuard $guard)
+    {
+        $this->guard = $guard;
+       
+    }
+
+    /**
+     * Show the login view.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Laravel\Fortify\Contracts\LoginViewResponse
+     */
+    public function create(Request $request): LoginViewResponse
+    {
+        return app(LoginViewResponse::class);
+    }
+
+    /**
+     * Attempt to authenticate a new session.
+     *
+     * @param  \Laravel\Fortify\Http\Requests\LoginRequest  $request
+     * @return mixed
+     */
+    public function store(LoginRequest $request)
+    {
+        return $this->loginPipeline($request)->then(function ($request) {
+            return app(LoginResponse::class);
+        });
+    }
+
+    /**
+     * Get the authentication pipeline instance.
+     *
+     * @param  \Laravel\Fortify\Http\Requests\LoginRequest  $request
+     * @return \Illuminate\Pipeline\Pipeline
+     */
+    protected function loginPipeline(LoginRequest $request)
+    {
+        if (Fortify::$authenticateThroughCallback) {
+            return (new Pipeline(app()))->send($request)->through(array_filter(
+                call_user_func(Fortify::$authenticateThroughCallback, $request)
+            ));
+        }
+
+        if (is_array(config('fortify.pipelines.login'))) {
+            return (new Pipeline(app()))->send($request)->through(array_filter(
+                config('fortify.pipelines.login')
+            ));
+        }
+
+        return (new Pipeline(app()))->send($request)->through(array_filter([
+            config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
+            Features::enabled(Features::twoFactorAuthentication()) ? RedirectIfTwoFactorAuthenticatable::class : null,
+            AttemptToAuthenticate::class,
+            PrepareAuthenticatedSession::class,
+        ]));
+    }
+
+    /**
+     * Destroy an authenticated session.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Laravel\Fortify\Contracts\LogoutResponse
+     */
+    public function destroy(Request $request): LogoutResponse
+    {
+        $this->guard->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return app(LogoutResponse::class);
+    }
+}
+```
+
+#### Colar em AdminController localizado em: ```app/Http/Controllers/AdminController.php```
+
+É isso mesmo, basta copiar e colar... Porém, para chegar aqui tive que ler e pesquisar bastante. Portanto, basta ao Dev separ um tempinho, pesquisar, ler e seguir a informação disponível na internet. Por favor, evitem me perguntar como funciona essas coisas, pois está tudo aqui. Não vou mais responder nada. LEIAM!
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+## Próxima Etapa
+
+#### Criar Pasta *Responses* em app/Http
+
+#### Copiar a lógica *LoginResponse.php* localizada em: ```vendor/laravel/fortify/src/Http/responses/LoginResponse.php```
+
+```
+<?php
+
+namespace Laravel\Fortify\Http\Responses;
+
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Fortify;
+
+class LoginResponse implements LoginResponseContract
+{
+    /**
+     * Create an HTTP response that represents the object.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function toResponse($request)
+    {
+        return $request->wantsJson()
+                    ? response()->json(['two_factor' => false])
+                    : redirect()->intended(Fortify::redirects('login'));
+    }
+}
+```
+
+#### Alterar ```: redirect()->intended(Fortify::redirects('login'));``` para  ```: redirect()->intended(Fortify::redirects('admin/dashboard'));```
+
+Isso serve para redirecionar o admin para a url ```dominio.com/admin/login```
+
+#### Código completo localizado em app/Http/Responses/LoginResponse.php:
+```
+<?php
+
+namespace Laravel\Fortify\Http\Responses;
+
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Fortify;
+
+class LoginResponse implements LoginResponseContract
+{
+    /**
+     * Create an HTTP response that represents the object.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function toResponse($request)
+    {
+        return $request->wantsJson()
+                    ? response()->json(['two_factor' => false])
+                    : redirect()->intended(Fortify::redirects('admin/dashboard'));
+    }
+}
+```
+#### criar rota com *Middleware* para o Admin.
+
+Bsta copiar colar a rota que vem por default do usuario ao instalar o JetStream e configurar para casa-se com admin.
+
+#### Resultado:
+
+```
+// Rota default Jetstream Admin - Copie e colei o Jestream Usuario Default
+Route::middleware(['auth:sanctum,admin',config('jetstream.auth_session'),'verified'
+
+])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard')->middleware('auth:admin');
+});
+
+```
+#### Chamar o AdminController e definir o nome dos métodos nesta rota:
+
+```
+// Rota login/Admin com middleware
+Route::middleware('admin:admin')->group(function(){
+    Route::get('admin/login',[AdminController::class,'loginForm']);
+    Route::post('admin/login',[AdminController::class,'store'])->name('admin.login');
+});
+```
+
+#### Criar método loginForm() em AdminController.php: isto é o formulario (POST) adminLogin encontrado em apos acessar dominio.com/admin/login
+ Para evitar confusão, o AdminController está no path: ```app/Http/Controllers/AdminController.php```
+ 
+```
+// Método loginForm Admin com middleware
+    public function loginForm()
+    {
+        return view('auth.login', ['guard' => 'admin']);
+    }
+```
+
+#### Configurar/'Codar' o login.blade, ou seja, chamar o método realizar o POST das informaçãoes Admin.
+- login.blade é encontrado em: ```resources/views/auth/login.blade.php```
+- Analise o código e encontre o comentário em PTBR, é isto que deve ser estudado...
+
+```
+<x-guest-layout>
+    <x-jet-authentication-card>
+        <x-slot name="logo">
+            <x-jet-authentication-card-logo />
+        </x-slot>
+
+        <x-jet-validation-errors class="mb-4" />
+
+        @if (session('status'))
+            <div class="mb-4 font-medium text-sm text-green-600">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        <!-- condição verificar a variável pelo isset, se for admin, então redirecionar, login admin,
+            caso contrário, redirecionar login user convencional -->
+        <form method="POST" action="{{ isset($guard) ? url($guard . '/login') : route('login') }}">
+            @csrf
+
+            <div>
+                <x-jet-label for="email" value="{{ __('Email') }}" />
+                <x-jet-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')"
+                    required autofocus />
+            </div>
+
+            <div class="mt-4">
+                <x-jet-label for="password" value="{{ __('Password') }}" />
+                <x-jet-input id="password" class="block mt-1 w-full" type="password" name="password" required
+                    autocomplete="current-password" />
+            </div>
+
+            <div class="block mt-4">
+                <label for="remember_me" class="flex items-center">
+                    <x-jet-checkbox id="remember_me" name="remember" />
+                    <span class="ml-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                </label>
+            </div>
+
+            <div class="flex items-center justify-end mt-4">
+                @if (Route::has('password.request'))
+                    <a class="underline text-sm text-gray-600 hover:text-gray-900"
+                        href="{{ route('password.request') }}">
+                        {{ __('Forgot your password?') }}
+                    </a>
+                @endif
+
+                <x-jet-button class="ml-4">
+                    {{ __('Log in') }}
+                </x-jet-button>
+            </div>
+        </form>
+    </x-jet-authentication-card>
+</x-guest-layout>
+```
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+## Etapa final
+
+#### Copiar Lógica RedirectIfAuthenticated.php localizado em: ```/app/Http/Middleware/```
+
+```
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Providers\RouteServiceProvider;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class RedirectIfAuthenticated
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @param  string|null  ...$guards
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function handle(Request $request, Closure $next, ...$guards)
+    {
+        $guards = empty($guards) ? [null] : $guards;
+
+        foreach ($guards as $guard) {
+            if (Auth::guard($guard)->check()) {
+                return redirect(RouteServiceProvider::HOME);
+            }
+        }
+
+        return $next($request);
+    }
+}
+```
+
+#### Criar novo arquivo na pasta Middleware como: AdminRedirectIfAuthenticated.php e Copiar a lógica acima:
+
+#### Resultado:
+```
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Providers\RouteServiceProvider;
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class AdminRedirectIfAuthenticated
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @param  string|null  ...$guards
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function handle(Request $request, Closure $next, ...$guards)
+    {
+        $guards = empty($guards) ? [null] : $guards;
+
+        foreach ($guards as $guard) {
+            if (Auth::guard($guard)->check()) {
+                return redirect($guard.'/dashboard');
+            }
+        }
+
+        return $next($request);
+    }
+}
+```
+# Pronto!
+Obteve-se, porntato, a multiautenticação do projeto newmodern-store. Eu segui documentação oficial e alguns tutoriais. Ou seja, consegui impelmentar completar os primeiros dois requisitos funcionais do projeto a partir de pesquisa, tentativa e erro. Eis aqui, contudo, o resultado desta pesquisa. 
+
+### FUNCIONA PERFEITAMENTE.
+
+
+
+
+
+
 
 
 
