@@ -1134,7 +1134,7 @@ class AdminRedirectIfAuthenticated
 }
 ```
 # Pronto!
-Obteve-se, porntato, a multiautenticação do projeto newmodern-store. Eu segui documentação oficial e alguns tutoriais. Ou seja, consegui impelmentar completar os primeiros dois requisitos funcionais do projeto a partir de pesquisa, tentativa e erro. Eis aqui, contudo, o resultado desta pesquisa. 
+Obteve-se, portNato, a multi-autenticação do projeto newmodern-store. Eu segui documentação oficial e alguns tutoriais. Ou seja, consegui implementar  os primeiros dois requisitos funcionais do projeto a partir de pesquisa, tentativa e erro. Eis aqui, contudo, o resultado desta pesquisa. 
 
 ### FUNCIONA PERFEITAMENTE.
 
