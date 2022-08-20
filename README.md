@@ -390,6 +390,101 @@ class DatabaseSeeder extends Seeder
 
 # CRIAR **GUARD** P/ ADMIN
 
-Os*guardas*definem como os usuários são autenticados para cada solicitação. Por exemplo, o Laravel vem com um protetor de sessão que mantém o estado usando armazenamento de sessão e cookies. Os provedores definem como os usuários são recuperados de seu armazenamento persistente.
+Os *guardas* definem como os usuários são autenticados para cada solicitação. Por exemplo, o Laravel vem com um protetor de sessão que mantém o estado usando armazenamento de sessão e cookies. Os provedores definem como os usuários são recuperados de seu armazenamento persistente.
+
+#### Ressalto que o *guard* User vem por *DEFAULT* ao instalar o Jetstream com Livewire, portanto, criei um *guard* admin apenas copiando a lógica *guard User*.
+
+#### toda lógica, confirme mencionado no começo destee tutorial está na pasta **config/auth.php**
+
+- Neste arquivo encontra-se todos os *Guards*.
+- É possível configurar novos *Guards*. Que é o que farei neste tutorial, pois trata-se de multiautenticação User / Admin
+- O *Guard* **web** vem por **DEFAULT**. Ou seja, se for trabalhar com um só tipo de autenticação, entaõ está configuração padrão basta.
+
+## Configuração Guard Admin
+
+#### Entrar na em: ``` config -> auth.php```
+#### Criar um guard admin copiando. Basta copiar o guard *web* e alterar *web* para **admin** no segundo campo do auth.php
+```
+  'guards' => [
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'admins',
+        ],
+    ],
+
+```
+#### Mesmo processo, mas agora, para o terceito campo do auth.php
+```
+ 'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
+        ],
+
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
+
+        // 'users' => [
+        //     'driver' => 'database',
+        //     'table' => 'users',
+        // ],
+    ],
+```
+
+#### Mesmo processo, mas agora, para o quarto campo do auth.php, passwords
+```
+ 'passwords' => [
+        'users' => [
+            'provider' => 'users',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'admins' => [
+            'provider' => 'admins',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+    ],
+
+```
+#### Para ter um entendimento melhor sobre a MultiAutenticação Jetstream, basta rodar o comando ```php artisan r:l``` . Isso mostrá uma lista de todas as rotas e métodos que vem por default. Muitas delas serão utilizados neste trabalho.
+
+## Proxima etapa:
+### Configurar FortifyServiceProvider.php localizado na pasta **Providers**
+
+#### O que é Providers?
+
+Provedores de serviço Laravel padrão
+
+Vamos começar com os provedores de serviço padrão incluídos no Laravel, eles estão todos na pasta app/Providers:
+
+   - AppServiceProvider
+   - AuthServiceProvider
+   - Provedor de serviço de transmissão
+   - EventServiceProvider
+   - Provedor de serviço de rota
+
+São todas classes PHP, cada uma relacionada ao seu tópico: "app" geral, Auth, Broadcasting, Events e Routes. Mas todos eles têm uma coisa em comum: o método boot().
+
+Dentro desse método, você pode escrever qualquer código relacionado a uma dessas seções: auth, events, routes, etc. Em outras palavras, Service Providers são apenas classes para registrar alguma funcionalidade global.
+
+Eles são separados como "provedores" porque são executados muito cedo no Ciclo de Vida do Aplicativo, portanto, é conveniente algo global aqui antes que o script de execução chegue aos Modelos ou Controladores.
+
+
+
+
+
+
+
+
+
 
 
