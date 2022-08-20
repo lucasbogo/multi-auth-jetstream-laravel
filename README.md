@@ -37,7 +37,135 @@ Route::middleware([
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 # TUTORIAL
 
-...
+### Instalação:
+
+#### Entrar no diretorio do projeto:
+
+```
+cd <nome_projeto>
+```
+
+#### Instalar Jetstream com Livewire :
+
+```
+php artisan jetstream:install livewire
+```
+
+#### Finalizar a instalação :
+
+```
+npm install && npm run dev
+```
+
+#### Migrar para o BD :
+
+```
+php artisan migrate
+```
+
+#### Rodar a Seeder :
+
+```
+php artisan db:seed
+```
+
+#### Criar controller Admin
+
+```
+php artisan make:controller Admin
+```
+
+#### Model + Migrations Table
+
+```
+php artisan make:model Admin -m
+```
+
+#### Copiar Atributos do User migrations_table (que vem por default ao instalar Jetstream) 
+
+```
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->foreignId('current_team_id')->nullable();
+            $table->string('profile_photo_path', 2048)->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('users');
+    }
+};
+```
+
+#### Colar atributos em Admin migrations_table e alterar dados para casa com Admin
+
+```
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('admins', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->foreignId('current_team_id')->nullable();
+            $table->string('profile_photo_path', 2048)->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('admins');
+    }
+};
+```
 
 
 
